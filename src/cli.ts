@@ -1,6 +1,5 @@
 import { Proxy, ConnectionPair } from './proxy';
 import type { FullMessage } from './parse';
-import { inspect } from 'util';
 import { EJSON } from 'bson';
 
 const ndjson = process.argv[2] === '--ndjson';

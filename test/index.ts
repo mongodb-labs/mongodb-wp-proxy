@@ -73,6 +73,7 @@ describe('bin', function() {
           if (!port) {
             const match = stdout.match(/Listening on(.+)forwarding/);
             if (match) {
+              // eslint-disable-next-line no-eval
               port = eval(`(${match[1]}).port`);
               resolve();
             }
