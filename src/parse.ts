@@ -69,6 +69,15 @@ class OpMsgBodySection {
   }
 }
 
+class OpMsgSecurityTokenSection {
+  kind = 'SecurityToken' as const;
+  body: BSONBuffer;
+
+  constructor(body: BSONBuffer) {
+    this.body = body;
+  }
+}
+
 class OpMsgDocumentSequenceSection {
   kind = 'DocumentSequence' as const;
   docSequenceId: string;
@@ -92,7 +101,7 @@ class OpMsgUnknownSection {
 class OpMsg {
   opCode = 'OP_MSG' as const;
   flagBits: number;
-  sections: (OpMsgBodySection | OpMsgDocumentSequenceSection | OpMsgUnknownSection)[];
+  sections: (OpMsgBodySection | OpMsgDocumentSequenceSection | OpMsgSecurityTokenSection | OpMsgUnknownSection)[];
   checksum: number | null;
 
   constructor(values: Pick<OpMsg, 'flagBits' | 'sections' | 'checksum'>) {
@@ -132,6 +141,13 @@ class OpMsg {
             i += bsonSize;
           }
           sections.push(new OpMsgDocumentSequenceSection(docSequenceId, objects));
+        }
+          break;
+        case 2: {
+          const bsonSize = dv.getUint32(i + 1, true);
+          sections.push(new OpMsgSecurityTokenSection(
+            new BSONBuffer(new Uint8Array(dv.buffer, dv.byteOffset + i + 1, bsonSize))));
+          i += 1 + bsonSize;
         }
           break;
         default: {
