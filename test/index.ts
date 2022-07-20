@@ -30,7 +30,7 @@ describe('Proxy', function() {
 
   afterEach(async() => {
     await client.close();
-    proxy.close();
+    await proxy.close();
   });
 
   it('records ismaster events', async() => {
