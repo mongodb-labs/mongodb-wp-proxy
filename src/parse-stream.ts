@@ -32,7 +32,8 @@ export class WireProtocolParser extends Writable {
       }
       callback();
     } catch (err) {
-      callback(err);
+      // eslint-disable-next-line standard/no-callback-literal
+      callback(err as Error);
     }
   }
 }

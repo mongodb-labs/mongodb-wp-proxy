@@ -86,6 +86,8 @@ export class Proxy extends EventEmitter {
   }
 
   async close(): Promise<void> {
-    await new Promise<void>((resolve, reject) => this.srv.close((err) => err ? reject(err) : resolve));
+    await new Promise<void>((resolve, reject) =>
+      this.srv.close((err) => (err ? reject(err) : resolve()))
+    );
   }
 }
