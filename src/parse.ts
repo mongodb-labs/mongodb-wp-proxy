@@ -1,6 +1,6 @@
 import zlib from 'zlib';
 import { promisify, TextDecoder } from 'util';
-import { deserialize } from 'bson';
+import { type Binary, deserialize } from 'bson';
 
 class MessageHeader {
   messageLength: number;
@@ -54,9 +54,24 @@ type OpContents = OpMsg | OpReply | OpUpdate | OpInsert | OpQuery | OpGetMore | 
 
 class BSONBuffer {
   data: any;
+  decodedPayload?: any;
 
   constructor(buf: Uint8Array) {
     this.data = deserialize(buf);
+    let payload: undefined | Binary;
+    if ((this.data.saslStart || this.data.saslContinue || this.data.conversationId) &&
+      this.data.payload?._bsontype === 'Binary') {
+      payload = this.data.payload;
+    }
+    if (this.data.speculativeAuthenticate?.payload?._bsontype === 'Binary') {
+      payload = this.data.speculativeAuthenticate.payload;
+    }
+    try {
+      if (payload) {
+        this.decodedPayload = deserialize(payload.value());
+      }
+    } catch (err) {
+    }
   }
 }
 
