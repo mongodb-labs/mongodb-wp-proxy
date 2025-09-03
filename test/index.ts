@@ -6,6 +6,14 @@ import { EJSON } from 'bson';
 import path from 'path';
 import { once } from 'events';
 
+let hostport: string;
+before(() => {
+  if (!process.env.MONGODB_HOSTPORT) {
+    throw new Error('MONGODB_HOSTPORT not set');
+  }
+  hostport = process.env.MONGODB_HOSTPORT;
+});
+
 describe('Proxy', function() {
   this.timeout(10_000);
 
@@ -16,9 +24,9 @@ describe('Proxy', function() {
 
   beforeEach(async() => {
     events = [];
-    proxy = new Proxy({ host: 'localhost', port: 27018 });
+    proxy = new Proxy({ host: hostport.split(':')[0], port: +hostport.split(':')[1] });
     proxy.on('newConnection', (conn: any) => {
-      conn.on('connectionEnded', (source: string) => events.push({ ev: 'connecionEnded', source }));
+      conn.on('connectionEnded', (source: string) => events.push({ ev: 'connectionEnded', source }));
       conn.on('connectionError', (source: string, err: Error) => events.push({ ev: 'connectionError', source, err }));
       conn.on('message', (source: string, msg: any) => events.push({ ev: 'message', source, msg }));
       conn.on('parseError', (source: string, err: Error) => events.push({ ev: 'parseError', source, err }));
@@ -62,7 +70,7 @@ describe('bin', function() {
       proc = childProcess.spawn('ts-node', [
         '-P', path.join(__dirname, '..', 'tsconfig.json'),
         path.join(__dirname, '..', 'src', 'cli.ts'),
-        'localhost:27018', 'localhost:0'
+        hostport, 'localhost:0'
       ], { stdio: 'pipe' });
       port = 0;
       await new Promise<void>((resolve) => {
@@ -107,7 +115,7 @@ describe('bin', function() {
         '-P', path.join(__dirname, '..', 'tsconfig.json'),
         path.join(__dirname, '..', 'src', 'cli.ts'),
         '--ndjson',
-        'localhost:27018', 'localhost:0'
+        hostport, 'localhost:0'
       ], { stdio: 'pipe' });
       port = 0;
       await new Promise<void>((resolve) => {
